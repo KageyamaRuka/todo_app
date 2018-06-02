@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>注册页面</title>
+</head>
+
+<body>
+    <form method="POST" action={{ url_for( "user.add") }}>
+        <input type="text" name="username" placeholder="username">
+        <br>
+        <input type="password" name="password" placeholder="password">
+        <br>
+        <button type="submit">注册</button>
+    </form>
+</body>
+
+</html>

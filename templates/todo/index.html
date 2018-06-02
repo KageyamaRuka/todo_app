@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Todos</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <style type="text/css">
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="center">
+        <h1>Todo</h1>
+        <br>
+        <input id='id-input-todo'>
+        <button type="button submit" class="btn btn-primary" id='id-button-add'>Add</button>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Title</th>
+                <th scope="col">Create Time</th>
+                <th scope="col">Update Time</th>
+                <th scope="col">Completed</th>
+                <th scope="col">Action</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody class="todo-list">
+        </tbody>
+    </table>
+    <script src='/static/main.js'></script>
+    <script src='/static/todo.js'></script>
+</body>
+
+</html>
