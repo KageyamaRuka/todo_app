@@ -6,6 +6,7 @@ data
 *.txt
 .vscode/
 .gitattributes
+default.nginx
 
 # C extensions
 *.so
