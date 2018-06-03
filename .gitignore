@@ -2,11 +2,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
-data
-*.txt
+#*.txt
 .vscode/
 .gitattributes
 default.nginx
+log.txt
 
 # C extensions
 *.so
