@@ -6,7 +6,7 @@ __pycache__/
 default.nginx
 log.txt
 *.txt
-
+demo.conf
 # C extensions
 *.so
 
