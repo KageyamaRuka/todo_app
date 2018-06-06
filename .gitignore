@@ -3,11 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 .vscode/
-.gitattributes
 default.nginx
 log.txt
-data/
 *.txt
+
 # C extensions
 *.so
 
