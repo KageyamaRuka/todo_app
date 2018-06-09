@@ -1,8 +1,0 @@
-[program:demo]
-command=/home/yukisou/venv/bin/gunicorn wsgi -c gunicorn.config.py
-directory=/home/yukisou/Demo
-autostart=true
-autorestart=true
-redirect_stderr=true
-stdout_logfile=/var/log/demo.log
-
