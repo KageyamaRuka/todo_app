@@ -24,7 +24,7 @@ var todoTemplate = function (todo) {
             <td class='todo-completed'>${completed}</td>
             <td>
                 <button class="todo-delete btn btn-danger">Delelte</button>
-                <button class="todo-edit btn btn btn-primary">Edit</button>
+                <button class="todo-edit btn btn-primary">Edit</button>
             </td>
         </tr>
     `
@@ -40,8 +40,8 @@ var insertTodo = function (todo) {
 var insertEditForm = function (cell) {
     var form = `
         <div class='todo-edit-form'>
-            <input class="todo-edit-input">
-            <button class='todo-update'>Update</button>
+            <input class="todo-edit-input form-control">
+            <button class='todo-update btn btn-primary'>Update</button>
         </div>
     `
     cell.insertAdjacentHTML('beforeend', form)
