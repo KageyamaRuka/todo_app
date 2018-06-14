@@ -9,6 +9,7 @@ log.txt
 demo
 # C extensions
 *.so
+.idea/
 
 # Distribution / packaging
 .Python
