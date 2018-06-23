@@ -3,45 +3,90 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>注册</title>
+    <title>Welcome</title>
     <!-- <link rel="stylesheet" href="/static/css/demo.css"> -->
     <style>
         body,
         html {
+            display: flex;
             height: 100%;
+            width: 100%;
             margin: 0px;
-        }
-
-        .bg {
-            background-image: url("/static/css/bg2.jpg");
-
-            height: 100%;
-
+            background-image: url("/static/jpg/bg3.jpg");
             background-position: center;
             background-repeat: no-repeat;
             background-size: cover;
+            font-family: Arial, Helvetica, sans-serif;
         }
 
         .container {
-            position: absolute;
+            margin: auto;
+            background-color: white;
+            opacity: 0.618;
+            border: 1px solid red;
+        }
+
+        .login-form {
+            padding: 16px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .imgcontainer {
             text-align: center;
+            margin: 24px 0 12px 0;
+        }
+
+        img.avatar {
+            width: 40%;
+            border-radius: 50%;
         }
     </style>
 </head>
 
 <body>
-    <div class="bg">
-        <div class="container">
-            <h1>你好，{{ username }}</h1>
+    <div class="container">
+        <div class="imgcontainer">
+            <img src="/static/jpg/img_avatar2.jpg" alt="Avatar" class="avatar">
+        </div>
+        <div class="login-form">
+            <h1>Hello，{{ username }}</h1>
             <form action={{ url_for( ".login") }} method="post">
+                <label for="uname">
+                    <b>Username</b>
+                </label>
                 <input type="text" name="username" placeholder="username">
                 <br>
+                <label for="psw">
+                    <b>Password</b>
+                </label>
                 <input type="password" name="password" placeholder="password">
                 <br>
-                <button type="submit">登陆</button>
+                <button type="submit">Sign In</button>
             </form>
             <a href={{ url_for( ".register") }}>
-                <button type="submit">注册</button>
+                <button type="submit">Sign Up</button>
             </a>
             <h3>{{ message }}</h3>
         </div>

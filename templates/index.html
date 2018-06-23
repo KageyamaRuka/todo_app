@@ -3,14 +3,16 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>注册</title>
+    <title>Index</title>
     <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 </head>
 
 <body>
-    <h1>你好，{{ username }}</h1>
+    <h1>Hello，{{ username }}</h1>
     <br>
-    <button>退出</button>
+    <form action={{ url_for( ".logout") }} method="post">
+        <button type="submit">Sign Out</button>
+    </form>
     <a href={{ url_for( "todo.index") }}>Todo</a>
     <a href="">Weibo</a>
     <a href="">Blog</a>

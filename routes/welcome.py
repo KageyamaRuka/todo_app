@@ -32,9 +32,9 @@ def check_login():
 def welcome():
     u = current_user()
     if u is None:
-        username = "游客"
+        username = "Stranger"
     else:
-        username = u.username
+        return redirect(url_for(".index"))
     template = render_template("welcome.html", username=username)
     r = make_response(template)
     r.set_cookie('cookie_name', 'RUA')
@@ -64,3 +64,13 @@ def index():
         return redirect(url_for(".welcome"))
     else:
         return render_template("index.html", username=u.username)
+
+
+@main.route("/logout", methods=['POST'])
+def logout():
+    u = current_user()
+    if u is None:
+        return redirect(url_for(".welcome"))
+    else:
+        session.pop("uid")
+        return redirect(url_for(".welcome"))

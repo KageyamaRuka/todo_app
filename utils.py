@@ -1,6 +1,8 @@
 import os.path
 import time
 import json
+import string
+import secrets
 
 
 def log(*args, **kwargs):
@@ -22,3 +24,7 @@ def json_body(ms):
     body = json.dumps(data, ensure_ascii=False, indent=2)
     r = header + '\r\n' + body
     return r.encode(encoding='utf-8')
+
+
+def randomStr(num):
+    return ''.join(secrets.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(num))
