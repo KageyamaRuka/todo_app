@@ -51,7 +51,7 @@ def login():
     log(request.form)
     u = User.validate_login(request.form)
     if u is None:
-        return render_template("welcome.html", username="游客", message="用户不存在")
+        return render_template("welcome.html", username="Stranger", message="User Not Exist")
     else:
         session["uid"] = u.id
         return redirect(url_for(".index"))
