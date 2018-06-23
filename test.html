@@ -38,10 +38,22 @@
             border: 1px solid red;
 
         }
+
+        #id-video-ddf {
+            position: absolute;
+            z-index: -1;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+        }
     </style>
 </head>
 
 <body>
+    <video autoplay muted loop id="id-video-ddf">
+        <source src="static/mv/deepdarkfantasy.mp4" type="video/mp4">
+    </video>
     <div class="login-form">
         <input type="text" name="username" placeholder="username">
         <br>
