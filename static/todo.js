@@ -18,13 +18,18 @@ var todoTemplate = function(todo) {
     var t = `   
         <tr class="todo-cell" data-id="${id}">
             <th class='todo-id' scope="row">${id}</th>
-            <td class='todo-title'>${title}</td>
+            <td class='todo-title'>
+                <div>
+                    <p>${title}</p>
+                </div>
+            </td>
             <td class='todo-ct'>${ct}</td>
             <td class='todo-ut'>${ut}</td>
             <td class='todo-completed'>${completed}</td>
             <td>
                 <button class="todo-delete btn btn-danger">Delelte</button>
-                <button class="todo-edit btn btn-primary">Edit</button>
+                <button class="todo-edit btn btn-warning">Edit</button>
+                <button class="todo-complete btn btn-success">Complete</button>
             </td>
         </tr>
     `
@@ -37,14 +42,12 @@ var insertTodo = function(todo) {
     todoList.insertAdjacentHTML('beforeend', todoCell)
 }
 
-var insertEditForm = function(cell) {
-    var form = `
-        <div class='todo-edit-form'>
-            <input class="todo-edit-input form-control">
-            <button class='todo-update btn btn-primary'>Update</button>
-        </div>
+var insertUpdateBtn = function(cell) {
+    var btn = `
+    <input id='id-input-edit'>
+    <button class="todo-update btn btn-info">Update</button>
     `
-    cell.insertAdjacentHTML('beforeend', form)
+    cell.insertAdjacentHTML('beforeend', btn)
 }
 
 var loadTodos = function() {
@@ -65,6 +68,7 @@ var bindEventTodoAdd = function() {
         var form = {
             'title': title,
         }
+        input.value = ''
         apiTodoAdd(form, function(r) {
             var todo = JSON.parse(r)
             insertTodo(todo)
@@ -93,8 +97,9 @@ var bindEventTodoEdit = function() {
         if (self.classList.contains('todo-edit')) {
             var todoCell = self.parentElement.parentElement
             var todoTitle = todoCell.querySelector('.todo-title')
-            todoTitle.remove()
-            insertEditForm(todoCell)
+            var div = todoTitle.querySelector('div')
+            insertUpdateBtn(div)
+            self.disable = true
         }
     })
 }
@@ -105,28 +110,50 @@ var bindEventTodoUpdate = function() {
     todoList.addEventListener('click', function(event) {
         var self = event.target
         if (self.classList.contains('todo-update')) {
-            log('点击了 update ')
-            //
-            var editForm = self.parentElement
-            // querySelector 是 DOM 元素的方法
-            // document.querySelector 中的 document 是所有元素的祖先元素
-            var input = editForm.querySelector('.todo-edit-input')
-            var title = input.value
-            // 用 closest 方法可以找到最近的直系父节点
+            var div = self.parentElement
+            var input = div.querySelector('#id-input-edit')
+            var newTitle = input.value
+            var todoCell = self.closest('.todo-cell')
+            var todo_id = todoCell.dataset.id
+            input.remove()
+            self.remove()
+            var form = {
+                'id': todo_id,
+                'title': newTitle,
+            }
+            apiTodoUpdate(form, function(r) {
+                var todo = JSON.parse(r)
+                log(todo)
+                var p = todoCell.querySelector('.todo-title').querySelector('div').querySelector('p')
+                var ut = todoCell.querySelector('.todo-ut')
+                var editbtn = todoCell.querySelector('.todo-edit')
+                editbtn.style.visibility = ''
+                p.innerHTML = todo.title
+                ut.innerHTML = todo.ut
+            })
+        }
+    })
+}
+
+var bindEventTodoComplete = function() {
+    var todoList = e('.todo-list')
+    todoList.addEventListener('click', function(event) {
+        var self = event.target
+        if (self.classList.contains('todo-complete')) {
+            log('btn complete clicked!')
             var todoCell = self.closest('.todo-cell')
             var todo_id = todoCell.dataset.id
             var form = {
                 'id': todo_id,
-                'title': title,
+                'completed': true,
             }
             apiTodoUpdate(form, function(r) {
-                log('更新成功', todo_id)
                 var todo = JSON.parse(r)
-                var selector = '#todo-' + todo.id
-                var todoCell = e(selector)
-                var titleSpan = todoCell.querySelector('.todo-title')
-                titleSpan.innerHTML = todo.title
-                //                todoCell.remove()
+                log(todo)
+                var c = todoCell.querySelector('.todo-completed')
+                var ut = todoCell.querySelector('.todo-ut')
+                c.innerHTML = todo.completed
+                ut.innerHTML = todo.ut
             })
         }
     })
@@ -137,6 +164,7 @@ var bindEvents = function() {
     bindEventTodoDelete()
     bindEventTodoEdit()
     bindEventTodoUpdate()
+    bindEventTodoComplete()
 }
 
 var __main = function() {
