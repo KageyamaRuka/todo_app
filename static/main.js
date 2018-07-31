@@ -26,36 +26,30 @@ var ajax = function(method, path, data, responseCallback) {
     r.send(data)
 }
 
-
 var apiTodoAll = function(callback) {
     var path = '/todo/todos'
     ajax('GET', path, '', callback)
 }
-
 
 var apiTodoAdd = function(form, callback) {
     var path = '/todo/add'
     ajax('POST', path, form, callback)
 }
 
-
 var apiTodoDelete = function(id, callback) {
     var path = '/todo/delete/' + id
     ajax('GET', path, '', callback)
 }
-
 
 var apiTodoUpdate = function(form, callback) {
     var path = '/todo/update'
     ajax('POST', path, form, callback)
 }
 
-
 var apiWeiboAll = function(callback) {
     var path = '/api/weibo/all'
     ajax('GET', path, '', callback)
 }
-
 
 var apiWeiboAdd = function(form, callback) {
     var path = '/api/weibo/add'

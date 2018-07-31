@@ -43,20 +43,10 @@ var WeiboTemplate = function(Weibo) {
         </div>
     `
     return t
-    /*
-    上面的写法在 python 中是这样的
-    t = """
-    <div class="Weibo-cell">
-        <button class="Weibo-delete">删除</button>
-        <span>{}</span>
-    </div>
-    """.format(Weibo)
-    */
 }
 
 var insertWeibo = function(Weibo) {
     var WeiboCell = WeiboTemplate(Weibo)
-    // 插入 Weibo-list
     var WeiboList = e('.weibo-list')
     WeiboList.insertAdjacentHTML('beforeend', WeiboCell)
 }
@@ -77,12 +67,8 @@ var removeEditForm = function(cell) {
 }
 
 var loadWeibos = function() {
-    // 调用 ajax api 来载入数据
     apiWeiboAll(function(r) {
-        // console.log('load all', r)
-        // 解析为 数组
         var Weibos = JSON.parse(r)
-        // 循环添加到页面中
         for (var i = 0; i < Weibos.length; i++) {
             var Weibo = Weibos[i]
             insertWeibo(Weibo)
@@ -102,7 +88,6 @@ var bindEventWeiboAdd = function() {
         }
         input.value = ''
         apiWeiboAdd(form, function(r) {
-            // 收到返回的数据, 插入到页面中
             var Weibo = JSON.parse(r)
             insertWeibo(Weibo)
         })
@@ -111,11 +96,9 @@ var bindEventWeiboAdd = function() {
 
 var bindEventWeiboDelete = function() {
     var WeiboList = e('.weibo-list')
-    // 注意, 第二个参数可以直接给出定义函数
     WeiboList.addEventListener('click', function(event) {
         var self = event.target
         if (self.classList.contains('weibo-delete')) {
-            // 删除这个 Weibo
             var WeiboCell = self.parentElement
             var WeiboId = WeiboCell.dataset.id
             apiWeiboDelete(WeiboId, function(r) {
@@ -128,11 +111,9 @@ var bindEventWeiboDelete = function() {
 
 var bindEventWeiboEdit = function() {
     var WeiboList = e('.weibo-list')
-    // 注意, 第二个参数可以直接给出定义函数
     WeiboList.addEventListener('click', function(event) {
         var self = event.target
         if (self.classList.contains('weibo-edit')) {
-            // 删除这个 Weibo
             var WeiboCell = self.parentElement
             var WeiboContent = WeiboCell.querySelector('.weibo-content')
             WeiboContent.style.display = 'none'
@@ -143,7 +124,6 @@ var bindEventWeiboEdit = function() {
 
 var bindEventWeiboUpdate = function() {
     var WeiboList = e('.weibo-list')
-    // 注意, 第二个参数可以直接给出定义函数
     WeiboList.addEventListener('click', function(event) {
         var self = event.target
         if (self.classList.contains('Weibo-update')) {

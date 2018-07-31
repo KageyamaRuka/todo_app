@@ -1,6 +1,11 @@
 import json
 import time
-from utils import log
+from utils import (
+    log,
+    timestamp,
+)
+from pymongo import MongoClient
+mongo = MongoClient()
 
 
 def save(data, path):
@@ -118,3 +123,169 @@ class Model(object):
                       for k, v in self.__dict__.items()]
         s = '\n'.join(properties)
         return '< {}\n{} \n>\n'.format(classname, s)
+
+
+class Mongo(object):
+    __fields__ = [
+        '_id',
+        ('id', int, -1),
+        ('type', str, ''),
+        ('deleted', bool, False),
+        ('created_time', int, 0),
+        ('updated_time', int, 0),
+    ]
+
+    @staticmethod
+    def next_id(name):
+        query = {
+            'name': name,
+        }
+        update = {
+            '$inc': {
+                'seq': 1
+            }
+        }
+        kwargs = {
+            'query': query,
+            'update': update,
+            'upsert': True,
+            'new': True,
+        }
+        doc = mongo.db['data_id']
+        new_id = doc.find_and_modify(**kwargs).get('seq')
+        return new_id
+
+    @classmethod
+    def new(cls, form=None, **kwargs):
+        name = cls.__name__
+        if form is None:
+            form = {}
+        m = cls._new_from_dict(form, **kwargs)
+        m.id = m.next_id(name)
+        ts = int(time.time())
+        m.created_time = ts
+        m.updated_time = ts
+        m.type = name.lower()
+        m.save()
+        return m
+
+    def save(self):
+        name = self.__class__.__name__
+        mongo.db[name].save(self.__dict__)
+
+    @classmethod
+    def all(cls):
+        return cls._find()
+
+    @classmethod
+    def _new_from_dict(cls, dic, **kwargs):
+        m = cls()
+        fields = cls.__fields__.copy()
+        fields.remove('_id')
+        for f in fields:
+            k, t, v = f
+            if k in dic:
+                setattr(m, k, t(dic[k]))
+            else:
+                setattr(m, k, v)
+
+        for k, v in kwargs.items():
+            if hasattr(m, k):
+                setattr(m, k, v)
+            else:
+                raise KeyError
+
+        return m
+
+    @classmethod
+    def _new_with_bson(cls, bson):
+        m = cls._new_from_dict(bson)
+        setattr(m, '_id', bson['_id'])
+        return m
+
+    @classmethod
+    def _find(cls, **kwargs):
+        name = cls.__name__
+        # kwargs['deleted'] = False
+        ds = mongo.db[name].find(kwargs)
+        l = [cls._new_with_bson(d) for d in ds]
+        return l
+
+    @classmethod
+    def find_all(cls, **kwargs):
+        # kwargs['deleted'] = False
+        return cls._find(**kwargs)
+
+    @classmethod
+    def find_by(cls, **kwargs):
+        # kwargs['deleted'] = False
+        return cls.find_one(**kwargs)
+
+    @classmethod
+    def find(cls, id):
+        # kwargs['deleted'] = False
+        return cls.find_one(id=id)
+
+    @classmethod
+    def find_one(cls, **kwargs):
+        # kwargs['deleted'] = False
+        l = cls._find(**kwargs)
+        if len(l) > 0:
+            return l[0]
+        else:
+            return None
+
+    @classmethod
+    def insert(cls, query_form, update_form, force=False):
+        ms = cls.find_one(**query_form)
+        if ms is None:
+            query_form.update(**update_form)
+            ms = cls.new(query_form)
+        else:
+            ms.update(update_form, force=force)
+        return ms
+
+    def update(self, form, force=False):
+        for k, v in form.items():
+            if force or hasattr(self, k):
+                setattr(self, k, v)
+        # self.updated_time = int(time.time()) fixme
+        self.save()
+
+    def delete(self):
+        name = self.__class__.__name__
+        query = {
+            'id': self.id,
+        }
+        values = {
+            'deleted': True
+        }
+        mongo.db[name].update_one(query, values)
+
+    def blacklist(self):
+        b = [
+            '_id',
+        ]
+        return b
+
+    def json(self):
+        _dict = self.__dict__
+        d = {k: v for k, v in _dict.items() if k not in self.blacklist()}
+        # TODO, 增加一个 type 属性
+        return d
+
+    def data_count(self, cls):
+        name = cls.__name__
+        # TODO, 这里应该用 type 替代
+        fk = '{}_id'.format(self.__class__.__name__.lower())
+        query = {
+            fk: self.id,
+        }
+        count = mongo.db[name]._find(query).count()
+        return count
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        properties = ('{0} = {1}'.format(k, v)
+                      for k, v in self.__dict__.items())
+        return '<{0}: \n  {1}\n>'.format(name, '\n  '.join(properties))

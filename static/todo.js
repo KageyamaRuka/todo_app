@@ -10,11 +10,6 @@ var todoTemplate = function(todo) {
     var ct = todo.ut
     var ut = todo.ut
     var completed = todo.completed
-    // data-xx 是自定义标签属性的语法
-    // 通过这样的方式可以给任意标签添加任意属性
-    // 假设 d 是 这个 div 的引用
-    // 这样的自定义属性通过  d.dataset.xx 来获取
-    // 在这个例子里面, 是 d.dataset.id
     var t = `   
         <tr class="todo-cell" data-id="${id}">
             <th class='todo-id' scope="row">${id}</th>
