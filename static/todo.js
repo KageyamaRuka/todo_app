@@ -4,7 +4,7 @@ var timeString = function(timestamp) {
     return t
 }
 
-var todoTemplate = function(todo) {
+var todoTemplate = function(todo, i) {
     var title = todo.title
     var id = todo.id
     var ct = todo.ut
@@ -12,7 +12,7 @@ var todoTemplate = function(todo) {
     var completed = todo.completed
     var t = `   
         <tr class="todo-cell" data-id="${id}">
-            <th class='todo-id' scope="row">${id}</th>
+            <th class='todo-id' scope="row">${i}</th>
             <td class='todo-title'>
                 <div>
                     <p>${title}</p>
@@ -31,8 +31,8 @@ var todoTemplate = function(todo) {
     return t
 }
 
-var insertTodo = function(todo) {
-    var todoCell = todoTemplate(todo)
+var insertTodo = function(todo, i) {
+    var todoCell = todoTemplate(todo, i)
     var todoList = e('.todo-list')
     todoList.insertAdjacentHTML('beforeend', todoCell)
 }
@@ -50,7 +50,7 @@ var loadTodos = function() {
         var todos = JSON.parse(r)
         for (var i = 0; i < todos.length; i++) {
             var todo = todos[i]
-            insertTodo(todo)
+            insertTodo(todo, i + 1)
         }
     })
 }
@@ -66,7 +66,13 @@ var bindEventTodoAdd = function() {
         input.value = ''
         apiTodoAdd(form, function(r) {
             var todo = JSON.parse(r)
-            insertTodo(todo)
+            var ids = es('.todo-id')
+            if (ids.length === 0) {
+                var i = 1
+            } else {
+                var i = parseInt(ids[ids.length - 1].innerText) + 1
+            }
+            insertTodo(todo, i)
         })
     })
 }
@@ -116,6 +122,7 @@ var bindEventTodoUpdate = function() {
                 'id': todo_id,
                 'title': newTitle,
             }
+            log(form)
             apiTodoUpdate(form, function(r) {
                 var todo = JSON.parse(r)
                 log(todo)

@@ -18,4 +18,8 @@ main = Blueprint('user', __name__)
 def add():
     form = request.form
     u = User.register(form)
+    if u is None:
+        session['message'] = "Register Failed"
+    else:
+        session['message'] = "Register Done"
     return redirect(url_for('welcome.welcome'))

@@ -6,6 +6,10 @@ var e = function(sel) {
     return document.querySelector(sel)
 }
 
+var es = function(sel) {
+    return document.querySelectorAll(sel)
+}
+
 var ajax = function(method, path, data, responseCallback) {
     var r = new XMLHttpRequest()
     // 设置请求方法和请求地址

@@ -12,7 +12,6 @@ app.register_blueprint(todo, url_prefix='/todo')
 app.register_blueprint(user, url_prefix='/user')
 app.register_blueprint(welcome)
 app.config['JSON_AS_ASCII'] = False
-log(app.view_functions)
 
 
 if __name__ == '__main__':

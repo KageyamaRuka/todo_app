@@ -1,138 +1,20 @@
-import json
-import time
 from utils import (
     log,
     timestamp,
 )
 from pymongo import MongoClient
+
 mongo = MongoClient()
 
 
-def save(data, path):
-    s = json.dumps(data, indent=2, ensure_ascii=False)
-    with open(path, 'w+', encoding='utf-8') as f:
-        f.write(s)
-
-
-def load(path):
-    with open(path, 'r', encoding='utf-8') as f:
-        s = f.read()
-        return json.loads(s)
-
-
 class Model(object):
-    @classmethod
-    def db_path(cls):
-        classname = cls.__name__
-        path = 'data/{}.txt'.format(classname)
-        return path
-
-    @classmethod
-    def _new_from_dict(cls, d):
-        m = cls({})
-        for k, v in d.items():
-            setattr(m, k, v)
-        return m
-
-    @classmethod
-    def new(cls, form):
-        m = cls(form)
-        m.id = None
-        m.save()
-        return m
-
-    @classmethod
-    def all(cls):
-        path = cls.db_path()
-        models = load(path)
-        ms = [cls._new_from_dict(m) for m in models]
-        return ms
-
-    @classmethod
-    def find_all(cls, **kwargs):
-        ms = []
-        k, v = '', ''
-        for key, value in kwargs.items():
-            k, v = key, value
-        all = cls.all()
-        for m in all:
-            if getattr(m, k) == v:
-                ms.append(m)
-        return ms
-
-    @classmethod
-    def find_by(cls, **kwargs):
-        k, v = '', ''
-        for key, value in kwargs.items():
-            k, v = key, value
-        all = cls.all()
-        for m in all:
-            if getattr(m, k) == v:
-                return m
-        return None
-
-    @classmethod
-    def find(cls, id):
-        return cls.find_by(id=id)
-
-    def save(self):
-        models = self.all()
-        if self.id is None:
-            if len(models) == 0:
-                self.id = 1
-            else:
-                m = models[-1]
-                self.id = m.id + 1
-            models.append(self)
-        else:
-            index = -1
-            for i, m in enumerate(models):
-                if m.id == self.id:
-                    index = i
-                    models[index] = self
-                    break
-        l = [m.__dict__ for m in models]
-        path = self.db_path()
-        save(l, path)
-
-    @classmethod
-    def delete(cls, id):
-        models = cls.all()
-        index = -1
-        for i, m in enumerate(models):
-            if m.id == id:
-                index = i
-                break
-
-        if index == -1:
-            pass
-        else:
-            obj = models.pop(index)
-            l = [m.__dict__ for m in models]
-            path = cls.db_path()
-            save(l, path)
-            return obj
-
-    def json(self):
-        d = self.__dict__.copy()
-        return d
-
-    def __repr__(self):
-        classname = self.__class__.__name__
-        properties = ['{}: ({})'.format(k, v)
-                      for k, v in self.__dict__.items()]
-        s = '\n'.join(properties)
-        return '< {}\n{} \n>\n'.format(classname, s)
-
-
-class Mongo(object):
     __fields__ = [
         '_id',
-        ('id', int, -1),
+        ('id', str, -1),
         ('type', str, ''),
-        ('deleted', bool, False),
-        ('created_time', int, 0),
-        ('updated_time', int, 0),
+        ('deleted', str, 'false'),
+        ('ct', str, 0),
+        ('ut', str, 0),
     ]
 
     @staticmethod
@@ -152,7 +34,7 @@ class Mongo(object):
             'new': True,
         }
         doc = mongo.db['data_id']
-        new_id = doc.find_and_modify(**kwargs).get('seq')
+        new_id = str(doc.find_and_modify(**kwargs).get('seq'))
         return new_id
 
     @classmethod
@@ -162,9 +44,9 @@ class Mongo(object):
             form = {}
         m = cls._new_from_dict(form, **kwargs)
         m.id = m.next_id(name)
-        ts = int(time.time())
-        m.created_time = ts
-        m.updated_time = ts
+        ts = timestamp()
+        m.ct = ts
+        m.ut = ts
         m.type = name.lower()
         m.save()
         return m
@@ -206,29 +88,25 @@ class Mongo(object):
     @classmethod
     def _find(cls, **kwargs):
         name = cls.__name__
-        # kwargs['deleted'] = False
+        kwargs['deleted'] = 'false'
         ds = mongo.db[name].find(kwargs)
         l = [cls._new_with_bson(d) for d in ds]
         return l
 
     @classmethod
     def find_all(cls, **kwargs):
-        # kwargs['deleted'] = False
         return cls._find(**kwargs)
 
     @classmethod
     def find_by(cls, **kwargs):
-        # kwargs['deleted'] = False
         return cls.find_one(**kwargs)
 
     @classmethod
     def find(cls, id):
-        # kwargs['deleted'] = False
         return cls.find_one(id=id)
 
     @classmethod
     def find_one(cls, **kwargs):
-        # kwargs['deleted'] = False
         l = cls._find(**kwargs)
         if len(l) > 0:
             return l[0]
@@ -245,33 +123,41 @@ class Mongo(object):
             ms.update(update_form, force=force)
         return ms
 
-    def update(self, form, force=False):
+    @classmethod
+    def update(cls, id, form, force=False):
+        log("update_form is {}".format(form))
+        s = cls.find(id)
         for k, v in form.items():
-            if force or hasattr(self, k):
-                setattr(self, k, v)
-        # self.updated_time = int(time.time()) fixme
-        self.save()
+            if force or hasattr(s, k):
+                setattr(s, k, v)
+        s.ut = timestamp()
+        s.save()
+        return s
 
-    def delete(self):
-        name = self.__class__.__name__
+    @classmethod
+    def delete(cls, id):
+        name = cls.__name__
         query = {
-            'id': self.id,
+            'id': id,
         }
-        values = {
-            'deleted': True
+        update = {
+            '$set': {
+                'deleted': True
+            }
+
         }
-        mongo.db[name].update_one(query, values)
+        mongo.db[name].update_one(query, update)
 
     def blacklist(self):
         b = [
             '_id',
+            'type',
         ]
         return b
 
     def json(self):
         _dict = self.__dict__
         d = {k: v for k, v in _dict.items() if k not in self.blacklist()}
-        # TODO, 增加一个 type 属性
         return d
 
     def data_count(self, cls):
@@ -289,3 +175,119 @@ class Mongo(object):
         properties = ('{0} = {1}'.format(k, v)
                       for k, v in self.__dict__.items())
         return '<{0}: \n  {1}\n>'.format(name, '\n  '.join(properties))
+
+# def save(data, path):
+#     s = json.dumps(data, indent=2, ensure_ascii=False)
+#     with open(path, 'w+', encoding='utf-8') as f:
+#         f.write(s)
+
+
+# def load(path):
+#     with open(path, 'r', encoding='utf-8') as f:
+#         s = f.read()
+#         return json.loads(s)
+
+
+# class Model(object):
+#     @classmethod
+#     def db_path(cls):
+#         classname = cls.__name__
+#         path = 'data/{}.txt'.format(classname)
+#         return path
+
+#     @classmethod
+#     def _new_from_dict(cls, d):
+#         m = cls({})
+#         for k, v in d.items():
+#             setattr(m, k, v)
+#         return m
+
+#     @classmethod
+#     def new(cls, form):
+#         m = cls(form)
+#         m.id = None
+#         m.save()
+#         return m
+
+#     @classmethod
+#     def all(cls):
+#         path = cls.db_path()
+#         models = load(path)
+#         ms = [cls._new_from_dict(m) for m in models]
+#         return ms
+
+#     @classmethod
+#     def find_all(cls, **kwargs):
+#         ms = []
+#         k, v = '', ''
+#         for key, value in kwargs.items():
+#             k, v = key, value
+#         all = cls.all()
+#         for m in all:
+#             if getattr(m, k) == v:
+#                 ms.append(m)
+#         return ms
+
+#     @classmethod
+#     def find_by(cls, **kwargs):
+#         k, v = '', ''
+#         for key, value in kwargs.items():
+#             k, v = key, value
+#         all = cls.all()
+#         for m in all:
+#             if getattr(m, k) == v:
+#                 return m
+#         return None
+
+#     @classmethod
+#     def find(cls, id):
+#         return cls.find_by(id=id)
+
+#     def save(self):
+#         models = self.all()
+#         if self.id is None:
+#             if len(models) == 0:
+#                 self.id = 1
+#             else:
+#                 m = models[-1]
+#                 self.id = m.id + 1
+#             models.append(self)
+#         else:
+#             index = -1
+#             for i, m in enumerate(models):
+#                 if m.id == self.id:
+#                     index = i
+#                     models[index] = self
+#                     break
+#         l = [m.__dict__ for m in models]
+#         path = self.db_path()
+#         save(l, path)
+
+#     @classmethod
+#     def delete(cls, id):
+#         models = cls.all()
+#         index = -1
+#         for i, m in enumerate(models):
+#             if m.id == id:
+#                 index = i
+#                 break
+
+#         if index == -1:
+#             pass
+#         else:
+#             obj = models.pop(index)
+#             l = [m.__dict__ for m in models]
+#             path = cls.db_path()
+#             save(l, path)
+#             return obj
+
+#     def json(self):
+#         d = self.__dict__.copy()
+#         return d
+
+#     def __repr__(self):
+#         classname = self.__class__.__name__
+#         properties = ['{}: ({})'.format(k, v)
+#                       for k, v in self.__dict__.items()]
+#         s = '\n'.join(properties)
+#         return '< {}\n{} \n>\n'.format(classname, s)

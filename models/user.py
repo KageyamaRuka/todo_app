@@ -3,12 +3,14 @@ import hashlib
 
 
 class User(Model):
-    def __init__(self, form):
-        self.id = None
-        self.username = form.get('username', '')
-        self.password = form.get('password', '')
+    __fields__ = Model.__fields__ + [
+        ('username', str, ''),
+        ('password', str, ''),
+    ]
 
-    def salted_password(self, password, salt='$!@><?>HUI&DWQa`'):
+
+    @staticmethod
+    def salted_password(password, salt='$!@><?>HUI&DWQa`'):
         def sha256(ascii_str):
             return hashlib.sha256(ascii_str.encode('ascii')).hexdigest()
         hash1 = sha256(password)
@@ -29,9 +31,10 @@ class User(Model):
 
     @classmethod
     def validate_login(cls, form):
-        u = User(form)
-        user = User.find_by(username=u.username)
-        if user is not None and user.password == u.salted_password(u.password):
+        name = form.get('username', '')
+        pwd = form.get('password', '')
+        user = User.find_by(username=name)
+        if user is not None and user.password == cls.salted_password(pwd):
             return user
         else:
             return None

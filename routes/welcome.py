@@ -8,24 +8,14 @@ from flask import (
     make_response,
 )
 from models.user import User
+from routes import (
+    login_required,
+    current_user,
+)
 from utils import log
 
 
 main = Blueprint('welcome', __name__)
-
-
-def current_user():
-    uid = session.get('uid', -1)
-    u = User.find_by(id=uid)
-    return u
-
-
-def check_login():
-    u = current_user()
-    if u is None:
-        return redirect(url_for(".welcome"))
-    else:
-        pass
 
 
 @main.route("/", methods=['GET'])
@@ -35,20 +25,15 @@ def welcome():
         username = "Stranger"
     else:
         return redirect(url_for(".index"))
-    template = render_template("welcome.html", username=username)
+    template = render_template(
+        "welcome.html", username=username, message=session.get('message', ''))
     r = make_response(template)
     r.set_cookie('cookie_name', 'RUA')
     return r
 
 
-@main.route("/register")
-def register():
-    return render_template("register.html")
-
-
 @main.route("/login", methods=['POST'])
 def login():
-    log(request.form)
     u = User.validate_login(request.form)
     if u is None:
         return render_template("welcome.html", username="Stranger", message="User Not Exist")
@@ -58,19 +43,13 @@ def login():
 
 
 @main.route("/index")
+@login_required
 def index():
     u = current_user()
-    if u is None:
-        return redirect(url_for(".welcome"))
-    else:
-        return render_template("index.html", username=u.username)
+    return render_template("index.html", username=u.username)
 
 
 @main.route("/logout", methods=['POST'])
 def logout():
-    u = current_user()
-    if u is None:
-        return redirect(url_for(".welcome"))
-    else:
-        session.pop("uid")
-        return redirect(url_for(".welcome"))
+    session.pop("uid")
+    return redirect(url_for(".welcome"))
