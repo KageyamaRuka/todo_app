@@ -1,3 +1,3 @@
 # Demo
 
-A little craft - The famous TodoMVC app:
+A little craft - The famous TodoMVC app
